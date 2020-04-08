@@ -1,0 +1,213 @@
+﻿<div class="container">
+    <h2>Products</h2>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal" onclick="clearTextBox();">Add New Product</button><br /><br />
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th class="col-md-2"> ID</th>
+                <th class="col-md-2"> Product Name </th>
+                <th class="col-md-2">Product Price </th>
+                <th class="col-md-2"> Price Code</th>
+
+            </tr>
+        </thead>
+        <tbody class="tbody"></tbody>
+    </table>
+</div>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title" id="myModalLabel">Add Employee</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="ProductId" class="col-md-3 text-right"> Product ID</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control " id="ProductId" placeholder="Id" disabled="disabled" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="ProductName" class="col-md-3 text-right"> Product Name</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control " id="ProductName" placeholder="Name" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="ProductPrice" class="col-md-3 text-right">Product Price </label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control " id="ProductPrice" placeholder="Price" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="ProductCode" class="col-md-3 text-right">Product Code</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="ProductCode" placeholder="Code" />
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnAdd" data-dismiss="modal" onclick="return Add();">Add</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Scripts/jquery-3.3.1.js"></script>
+<script>
+
+    $(document).ready(function () {
+        loadData();
+    });
+
+    function loadData() {
+        console.log("data");
+        $.ajax({
+            url: "/Product/getall",
+            type: "GET",
+            contentType: "application/json;charset=utf-8",
+            dataType: "json",
+            success: function (result) {
+                console.log(result)
+                var html = '';
+                $.each(result, function (key, item) {
+                    debugger;
+                    html += '<tr>';
+                    html += '< td > ' + result[i].ProductId + '</td > ';
+                    html += '< td > ' + result[i].ProductName + '</td > ';
+                    html += '< td > ' + result[i].ProductPrice + '</td > ';
+                    html += '< td > ' + result[i].ProductCode + '</td > ';
+
+                    html += '< td > <a href="#" onclick="Delele(' + item.ProductId + ')">Delete</a></td > ';
+                    html += '</tr > ';
+                });
+                $('.tbody').html(html);
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        });
+    }
+
+    function Add() {
+        var res = validate();
+        if (res == false) {
+            return false;
+        }
+        var ProdObj = {
+            ProductId: $('#ProductId').val(),
+            ProductName: $('#ProductName').val(),
+            ProductPrice: $('#ProductPrice').val(),
+            ProductCode: $('#ProductCode').val(),
+
+        };
+        $.ajax({
+            url: "/Product/create",
+            data: JSON.stringify(ProdObj),
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            dataType: "json",
+            success: function (result) {
+                loadData();
+                $('#myModal').modal('hide');
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        });
+    }
+
+    function getbyID(ProdId) {
+        $('#ProductId').css('border-color', 'lightgrey');
+        $('#ProductName').css('border-color', 'lightgrey');
+        $('#ProductPrice').css('border-color', 'lightgrey');
+        $('#ProductCode').css('border-color', 'lightgrey');
+        $.ajax({
+            url: "/Product/Edit/" + ProdId,
+            typr: "GET",
+            contentType: "application/json;charset=UTF-8",
+            dataType: "json",
+            success: function (result) {
+                $('#ProductId').val(result.ProductId);
+                $('#ProductName').val(result.ProductName);
+                $('#ProductPrice').val(result.ProductPrice);
+                $('#ProductCode').val(result.ProductCode);
+                $('#myModal').modal('show');
+                $('#btnUpdate').show();
+                $('#btnAdd').hide();
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        });
+        return false;
+    }
+
+
+    function Delele(ProdId) {
+        var ans = confirm("Are you sure you want to delete this Record?");
+        if (ans) {
+            $.ajax({
+                url: "/Product/Delete/" + ProdId,
+                type: "DELETE",
+                contentType: "application/json;charset=UTF-8",
+                dataType: "json",
+                success: function (result) {
+                    loadData();
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+        }
+    }
+    function clearTextBox() {
+        $('#ProductId').val("");
+        $('#ProductName').val("");
+        $('#ProductPrice').val("");
+        $('#ProductCode').val("");
+        $('#btnUpdate').hide();
+        $('#btnAdd').show();
+        $('#ProductId').css('border-color', 'lightgrey');
+        $('#ProductName').css('border-color', 'lightgrey');
+        $('#ProductPrice').css('border-color', 'lightgrey');
+        $('#ProductCode').css('border-color', 'lightgrey');
+    }
+
+    function validate() {
+        var isValid = true;
+        if ($('#ProductName').val().trim() == "") {
+            $('#ProductName').css('border-color', 'Red');
+            isValid = false;
+        }
+        else {
+            $('#ProductName').css('border-color', 'lightgrey');
+        }
+        if ($('#ProductPrice').val().trim() == "") {
+            $('#ProductPrice').css('border-color', 'Red');
+            isValid = false;
+        }
+        else {
+            $('#ProductPrice').css('border-color', 'lightgrey');
+        }
+        if ($('#ProductPrice').val().trim() == "") {
+            $('#ProductPrice').css('border-color', 'Red');
+            isValid = false;
+        }
+        else {
+            $('#ProductPrice').css('border-color', 'lightgrey');
+        }
+        if ($('#ProductCode').val().trim() == "") {
+            $('#ProductCode').css('border-color', 'Red');
+            isValid = false;
+        }
+        else {
+            $('#ProductCode').css('border-color', 'lightgrey');
+        }
+        return isValid;
+    }</script>
